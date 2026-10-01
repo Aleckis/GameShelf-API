@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum LibraryStatus {
+  WANT_TO_PLAY
+  PLAYING
+  COMPLETED
+  DROPPED
+}
+
+model User {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  username     String         @unique
+  passwordHash String
+  createdAt    DateTime       @default(now())
+  library      LibraryEntry[]
+  reviews      Review[]
+}
+
+model Game {
+  id         Int            @id @default(autoincrement())
+  externalId Int            @unique
+  title      String
+  slug       String         @unique
+  released   DateTime?
+  coverUrl   String?
+  genres     String[]
+  platforms  String[]
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  library    LibraryEntry[]
+  reviews    Review[]
+
+  @@index([title])
+}
+
+model LibraryEntry {
+  id          Int           @id @default(autoincrement())
+  userId      String
+  gameId      Int
+  status      LibraryStatus @default(WANT_TO_PLAY)
+  hoursPlayed Int           @default(0)
+  addedAt     DateTime      @default(now())
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game        Game          @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gameId])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  gameId    Int
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gameId])
+  @@index([gameId])
+}
