@@ -8,10 +8,11 @@ import { GamesModule } from './games/games.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { LibraryModule } from './library/library.module';
+import { ReviewsModule } from './reviews/reviews.module';
 
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, GamesModule, UsersModule, AuthModule, LibraryModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, GamesModule, UsersModule, AuthModule, LibraryModule, ReviewsModule],
   controllers: [AppController, HealthController],
   providers: [AppService],
 })
