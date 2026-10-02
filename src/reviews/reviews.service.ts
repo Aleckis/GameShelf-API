@@ -9,10 +9,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ListReviewsDto } from './dto/list-reviews.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class ReviewsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redis: RedisService,
+  ) {}
 
   async create(userId: string, gameId: number, dto: CreateReviewDto) {
     const game = await this.prisma.game.findUnique({
@@ -25,7 +29,7 @@ export class ReviewsService {
     }
 
     try {
-      return await this.prisma.review.create({
+      const review = await this.prisma.review.create({
         data: {
           userId,
           gameId,
@@ -33,6 +37,10 @@ export class ReviewsService {
           comment: dto.comment,
         },
       });
+
+      await this.redis.del('games:top');
+
+      return review;
     } catch (error: unknown) {
       if (error instanceof Error && 'code' in error && error.code === 'P2002') {
         throw new ConflictException('Você já avaliou este jogo');
@@ -105,13 +113,17 @@ export class ReviewsService {
     }
 
     try {
-      return await this.prisma.review.update({
+      const updatedReview = await this.prisma.review.update({
         where: { id: reviewId },
         data: {
           ...(dto.rating !== undefined ? { rating: dto.rating } : {}),
           ...(dto.comment !== undefined ? { comment: dto.comment } : {}),
         },
       });
+
+      await this.redis.del('games:top');
+
+      return updatedReview;
     } catch (error: unknown) {
       if (error instanceof Error && 'code' in error && error.code === 'P2025') {
         throw new NotFoundException('Avaliação não encontrada');
@@ -122,40 +134,35 @@ export class ReviewsService {
   }
 
   async remove(userId: string, reviewId: number) {
-  const review = await this.prisma.review.findUnique({
-    where: { id: reviewId },
-    select: {
-      id: true,
-      userId: true,
-    },
-  });
-
-  if (!review) {
-    throw new NotFoundException('Avaliação não encontrada');
-  }
-
-  if (review.userId !== userId) {
-    throw new ForbiddenException(
-      'Você não pode remover esta avaliação',
-    );
-  }
-
-  try {
-    await this.prisma.review.delete({
+    const review = await this.prisma.review.findUnique({
       where: { id: reviewId },
+      select: {
+        id: true,
+        userId: true,
+      },
     });
-  } catch (error: unknown) {
-    if (
-      error instanceof Error &&
-      'code' in error &&
-      error.code === 'P2025'
-    ) {
-      throw new NotFoundException(
-        'Avaliação não encontrada',
-      );
+
+    if (!review) {
+      throw new NotFoundException('Avaliação não encontrada');
     }
 
-    throw error;
+    if (review.userId !== userId) {
+      throw new ForbiddenException('Você não pode remover esta avaliação');
+    }
+
+    try {
+      await this.prisma.review.delete({
+        where: { id: reviewId },
+      });
+
+      await this.redis.del('games:top');
+      
+    } catch (error: unknown) {
+      if (error instanceof Error && 'code' in error && error.code === 'P2025') {
+        throw new NotFoundException('Avaliação não encontrada');
+      }
+
+      throw error;
+    }
   }
-}
 }

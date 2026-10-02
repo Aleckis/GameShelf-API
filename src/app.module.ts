@@ -9,10 +9,11 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { LibraryModule } from './library/library.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { RedisModule } from './redis/redis.module';
 
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, GamesModule, UsersModule, AuthModule, LibraryModule, ReviewsModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, GamesModule, UsersModule, AuthModule, LibraryModule, ReviewsModule, RedisModule],
   controllers: [AppController, HealthController],
   providers: [AppService],
 })

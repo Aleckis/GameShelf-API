@@ -3,9 +3,10 @@ import { AuthModule } from '../auth/auth.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ReviewsController } from './reviews.controller';
 import { ReviewsService } from './reviews.service';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule],
+  imports: [AuthModule, PrismaModule, RedisModule],
   controllers: [ReviewsController],
   providers: [ReviewsService],
 })

@@ -7,12 +7,17 @@ export class GamesController {
   constructor(private readonly gamesService: GamesService) {}
 
   @Get()
-findAll(@Query() query: ListGamesDto) {
-  return this.gamesService.findAll(query);
-}
+  findAll(@Query() query: ListGamesDto) {
+    return this.gamesService.findAll(query);
+  }
+
+  @Get('top')
+  getTop() {
+    return this.gamesService.getTop();
+  }
 
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
-  return this.gamesService.findOne(id);
-}
+    return this.gamesService.findOne(id);
+  }
 }
