@@ -14,6 +14,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { randomUUID } from 'node:crypto';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { APP_FILTER } from '@nestjs/core';
+import { MetricsModule } from './metrics/metrics.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { APP_FILTER } from '@nestjs/core';
         },
       }),
     }),
+    MetricsModule,
   ],
   controllers: [AppController, HealthController],
   providers: [

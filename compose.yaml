@@ -17,6 +17,20 @@ services:
    POSTGRES_PASSWORD: gameshelf
    POSTGRES_DB: gameshelf_test
   ports: ["127.0.0.1:5433:5432"]
+ prometheus:
+  image: prom/prometheus:v3.5.0
+  ports:
+   - "127.0.0.1:9090:9090"
+  volumes:
+   - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+   - prometheusdata:/prometheus
+  extra_hosts:
+   - "host.docker.internal:host-gateway"
+  command:
+   - "--config.file=/etc/prometheus/prometheus.yml"
+   - "--storage.tsdb.path=/prometheus"
+   - "--storage.tsdb.retention.time=7d"
   
 volumes:
  pgdata:
+ prometheusdata:
